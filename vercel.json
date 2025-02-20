@@ -2,18 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/create-payment.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/create-payment",
-      "dest": "/server.js"
+      "dest": "api/create-payment.js"
     },
     {
       "src": "/api/health",
-      "dest": "/server.js"
+      "dest": "api/create-payment.js"
     }
   ]
 }
