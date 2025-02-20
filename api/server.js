@@ -25,6 +25,27 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is up and running!' });
 });
 
+
+// Register route to create a new user with Appwrite
+app.post('/api/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Register the user using Appwrite's createEmailAccount method
+    const user = await account.create(email, password);
+
+    // If registration is successful, return user data
+    res.status(201).json({
+      message: 'Registration successful',
+      user: user, // User details
+    });
+  } catch (error) {
+    // If registration fails, return an error
+    console.error('Registration error:', error);
+    res.status(400).json({ error: 'Failed to register user' });
+  }
+});
+
 // Login route to authenticate the user with Appwrite
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;

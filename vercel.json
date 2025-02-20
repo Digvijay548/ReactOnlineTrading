@@ -18,6 +18,10 @@
     {
       "src": "/api/create-payment",
       "dest": "/api/server.js"
+    },
+    {
+      "src": "/api/register",
+      "dest": "/api/server.js"
     }
   ]
 }
