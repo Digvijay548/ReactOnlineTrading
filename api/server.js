@@ -76,6 +76,7 @@ app.post('/api/login', async (req, res) => {
 });
 function GeterateId()
 {
+  console.error(Cashfree.XClientId.toString())
   const UniqId=crypto.randomBytes(16).toString('hex');
   const hash= crypto.createHash('sha256');
   hash.update(UniqId);
