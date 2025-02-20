@@ -6,6 +6,7 @@ const { Client, Account } = require('node-appwrite');
 dotenv.config(); // Load environment variables from .env file
 
 const app = express();
+app.use(cors()); // Enable CORS
 app.use(express.json()); // For parsing application/json
 
 // Initialize the Appwrite client for authentication
