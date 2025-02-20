@@ -1,25 +1,54 @@
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const { Client, Account } = require('node-appwrite');
 
-// Load environment variables from a .env file
-dotenv.config();
+dotenv.config(); // Load environment variables from .env file
 
 const app = express();
 app.use(express.json()); // For parsing application/json
+
+// Initialize the Appwrite client for authentication
+const client = new Client();
+client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
+      .setProject(process.env.APPWRITE_PROJECT_ID) // Set your Appwrite project ID
+      .setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
+
+const account = new Account(client);
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is up and running!' });
 });
 
-// API route to handle payment creation
+// Login route to authenticate the user with Appwrite
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Authenticate the user with Appwrite using email and password
+    const session = await account.createEmailSession(email, password);
+
+    // If successful, return session info (like the user data)
+    res.status(200).json({
+      message: 'Login successful',
+      user: session.user, // Session contains the user info
+      sessionId: session.$id // The session ID
+    });
+  } catch (error) {
+    // If authentication fails, return an error
+    console.error('Login error:', error);
+    res.status(401).json({ error: 'Invalid credentials or error occurred during login' });
+  }
+});
+
+// API route to handle payment creation using Cashfree
 app.post('/api/create-payment', async (req, res) => {
   const { amount } = req.body; // Amount in paise (₹1 = 100 paise)
 
   // Cashfree credentials (set these as environment variables)
-  const CLIENT_ID = process.env.CLIENT_ID;
-  const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const CLIENT_ID = process.env.CASHFREE_CLIENT_ID;
+  const CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET;
 
   // Prepare Cashfree order data
   const orderData = {
