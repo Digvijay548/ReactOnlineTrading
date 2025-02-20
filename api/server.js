@@ -87,16 +87,16 @@ function GeterateId()
 
 // API route to handle payment creation using Cashfree
 app.get('/api/create-payment', async (req, res) => {
-  //const { amount,email } = req.body; // Amount in paise (₹1 = 100 paise)
+  const { amount,email } = req.query; // Amount in paise (₹1 = 100 paise)
   // Prepare Cashfree order data
   var request = {
-    "order_amount": "100",
+    "order_amount": amount,
     "order_currency": "INR",
     "order_id": await GeterateId(),
     "customer_details": {
       "customer_id": "node_sdk_test",
       "customer_name": "",
-      "customer_email": "digvijaypatil548@gmail.com",
+      "customer_email": email,
       "customer_phone": "9999999999"
     },
   };
@@ -109,6 +109,21 @@ app.get('/api/create-payment', async (req, res) => {
 
 
 });
+
+app.post('/api/Verify_Payment',async (req,res)=>{
+  try {
+    let {orderid}=req.body;
+    Cashfree.PGOrderFetchPayment("2023-08-01",orderid).then((respons)=>{
+      res.json(respons.data);
+    }).catch(error=>{
+      console.error(error.respons.data.message)
+    })
+    
+  } catch (error) {
+    console.log("error in verify payment")
+    
+  }
+})
 
 // Set the port for the server
 const PORT = process.env.PORT || 3000;
