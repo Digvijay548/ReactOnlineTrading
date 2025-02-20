@@ -28,11 +28,12 @@ app.get('/api/health', (req, res) => {
 // Login route to authenticate the user with Appwrite
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-
+  console.error('Login email:', email);
+  console.error('Login password:', password);
   try {
     // Authenticate the user with Appwrite using email and password
     const session = await account.createEmailPasswordSession(email, password);
-
+    console.error('Login error:', "error");
     // If successful, return session info (like the user data)
     res.status(200).json({
       message: 'Login successful',
