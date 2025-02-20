@@ -90,7 +90,7 @@ app.get('/api/create-payment', async (req, res) => {
   //const { amount,email } = req.body; // Amount in paise (₹1 = 100 paise)
   // Prepare Cashfree order data
   var request = {
-    "order_amount": "1",
+    "order_amount": "100",
     "order_currency": "INR",
     "order_id": await GeterateId(),
     "customer_details": {
