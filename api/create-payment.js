@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
@@ -8,6 +7,11 @@ dotenv.config();
 
 const app = express();
 app.use(express.json()); // For parsing application/json
+
+// Health check route to verify server is running
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ message: 'Server is up and running!' });
+});
 
 // API route to handle payment creation
 app.post('/api/create-payment', async (req, res) => {
