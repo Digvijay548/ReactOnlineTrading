@@ -76,7 +76,7 @@ app.post('/api/login', async (req, res) => {
 });
 function GeterateId()
 {
-  console.error(Cashfree.XClientId.toString())
+  console.log(Cashfree.XClientId.toString())
   const UniqId=crypto.randomBytes(16).toString('hex');
   const hash= crypto.createHash('sha256');
   hash.update(UniqId);
@@ -90,13 +90,13 @@ app.get('/api/create-payment', async (req, res) => {
   //const { amount,email } = req.body; // Amount in paise (₹1 = 100 paise)
   // Prepare Cashfree order data
   var request = {
-    "order_amount": "amount",
+    "order_amount": "1",
     "order_currency": "INR",
     "order_id": await GeterateId(),
     "customer_details": {
       "customer_id": "node_sdk_test",
       "customer_name": "",
-      "customer_email": "email",
+      "customer_email": "digvijaypatil548@gmail.com",
       "customer_phone": "9999999999"
     },
   };
