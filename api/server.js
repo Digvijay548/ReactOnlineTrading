@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const crypto=require('crypto');
+const {Cashfree}=require('cashfree-pg');
 const { Client, Account } = require('node-appwrite');
 
 dotenv.config(); // Load environment variables from .env file
@@ -9,6 +11,12 @@ dotenv.config(); // Load environment variables from .env file
 const app = express();
 app.use(cors()); // Enable CORS
 app.use(express.json()); // For parsing application/json
+app.use(express.urlencoded({extended:true}));
+ // Cashfree credentials (set these as environment variables)
+
+ Cashfree.XEnvironment=Cashfree.Environment.PRODUCTION;
+ Cashfree.XClientId = process.env.CASHFREE_CLIENT_ID;
+ Cashfree.XClientSecret = process.env.CASHFREE_CLIENT_SECRET;
 
 // Initialize the Appwrite client for authentication
 const client = new Client();
@@ -70,11 +78,6 @@ app.post('/api/login', async (req, res) => {
 // API route to handle payment creation using Cashfree
 app.post('/api/create-payment', async (req, res) => {
   const { amount } = req.body; // Amount in paise (₹1 = 100 paise)
-
-  // Cashfree credentials (set these as environment variables)
-  const CLIENT_ID = process.env.CASHFREE_CLIENT_ID;
-  const CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET;
-
   // Prepare Cashfree order data
   const orderData = {
     order_amount: amount,
