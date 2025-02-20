@@ -29,10 +29,11 @@ app.get('/api/health', (req, res) => {
 // Register route to create a new user with Appwrite
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
-
+console.log(email)
+console.log(password)
   try {
     // Register the user using Appwrite's createEmailAccount method
-    const user = await account.create(email, password);
+    const user = await account.create('unique()',email, password);
 
     // If registration is successful, return user data
     res.status(201).json({
