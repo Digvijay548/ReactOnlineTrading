@@ -11,8 +11,8 @@ app.use(express.json()); // For parsing application/json
 // Initialize the Appwrite client for authentication
 const client = new Client();
 client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
-      .setProject(process.env.APPWRITE_PROJECT_ID) // Set your Appwrite project ID
-      .setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
+      .setProject(process.env.APPWRITE_PROJECT_ID); // Set your Appwrite project ID
+      //.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
 
 const account = new Account(client);
 
