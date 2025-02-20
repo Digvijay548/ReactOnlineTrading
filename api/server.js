@@ -74,45 +74,39 @@ app.post('/api/login', async (req, res) => {
     res.status(401).json({ error: 'Invalid credentials or error occurred during login' });
   }
 });
+function GeterateId()
+{
+  const UniqId=crypto.randomBytes(16).toString('hex');
+  const hash= crypto.createHash('sha256');
+  hash.update(UniqId);
+
+  const orderid=hash.digest('hex');
+  return orderid.substring(0,12);
+}
 
 // API route to handle payment creation using Cashfree
-app.post('/api/create-payment', async (req, res) => {
-  const { amount } = req.body; // Amount in paise (₹1 = 100 paise)
+app.get('/api/create-payment', async (req, res) => {
+  //const { amount,email } = req.body; // Amount in paise (₹1 = 100 paise)
   // Prepare Cashfree order data
-  const orderData = {
-    order_amount: amount,
-    order_currency: 'INR',
-    customer_details: {
-      customer_id: 'node_sdk_test',  // You can set a unique ID for the user
-      customer_email: 'example@gmail.com',
-      customer_phone: '9999999999',
+  var request = {
+    "order_amount": "amount",
+    "order_currency": "INR",
+    "order_id": await GeterateId(),
+    "customer_details": {
+      "customer_id": "node_sdk_test",
+      "customer_name": "",
+      "customer_email": "email",
+      "customer_phone": "9999999999"
     },
-    order_meta: {
-      return_url: 'https://your-return-url.com',  // Specify your return URL here
-    },
-    order_note: 'Payment for balance top-up',
   };
+  Cashfree.PGCreateOrder("2023-08-01",request).then(response=>{
+    console.error(response.data);
+    res.json(response.data);
+  }).catch(error=>{
+    console.error(error.response.data.message);
+  })
 
-  try {
-    // Send POST request to Cashfree API
-    const response = await axios.post(
-      'https://api.cashfree.com/api/v2/order/create',
-      orderData,
-      {
-        headers: {
-          'X-Client-Id': CLIENT_ID,
-          'X-Client-Secret': CLIENT_SECRET,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
 
-    // Send back response from Cashfree
-    res.status(200).json(response.data);
-  } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(500).json({ error: 'Failed to create order.' });
-  }
 });
 
 // Set the port for the server
