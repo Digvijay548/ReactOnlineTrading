@@ -12,13 +12,7 @@ app.use(cors({
 })); // Enable CORS
 app.use(express.json()); // For parsing application/json
 
-// Initialize the Appwrite client for authentication
-const client = new Client();
-client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
-      .setProject(process.env.APPWRITE_PROJECT_ID); // Set your Appwrite project ID
-      //.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
 
-const account = new Account(client);
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
@@ -27,12 +21,21 @@ app.get('/api/health', (req, res) => {
 
 // Login route to authenticate the user with Appwrite
 app.post('/api/login', async (req, res) => {
+  // Initialize the Appwrite client for authentication
+const client = new Client();
+client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
+      .setProject(process.env.APPWRITE_PROJECT_ID); // Set your Appwrite project ID
+      //.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
+
+const account = new Account(client);
+console.log(email)
+console.log(password)
   const { email, password } = req.body;
 
   try {
     // Authenticate the user with Appwrite using email and password
-    const session = await account.createEmailSession(email, password);
-
+    const session = await account.createEmailPasswordSession(email, password);
+    console.log(session)
     // If successful, return session info (like the user data)
     res.status(200).json({
       message: 'Login successful',
