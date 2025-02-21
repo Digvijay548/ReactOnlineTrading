@@ -115,6 +115,8 @@ app.get('/api/create-payment', async (req, res) => {
 app.post('/api/Verify_Payment', async (req, res) => {
   try {
    let {orderId}=req.body;
+   console.error(" orderid = ",orderId)
+   console.log(" orderid send to server = ",orderId)
    Cashfree.PGOrderFetchPayments("2023-08-01",orderId).then((response)=>{
     res.json(response.data);
    })
