@@ -110,18 +110,29 @@ app.get('/api/create-payment', async (req, res) => {
 
 });
 
-app.post('/api/Verify_Payment',async (req,res)=>{
+app.post('/api/Verify_Payment', async (req, res) => {
   try {
-    let {orderid}=req.body;
-    Cashfree.PGOrderFetchPayment("2023-08-01",orderid).then((respons)=>{
-      res.json(respons.data);
-    }).catch(error=>{
-      console.error(error.respons.data.message)
-    })
-    
+    let { orderid } = req.body;
+
+    if (!orderid) {
+      return res.status(400).json({ error: "Order ID is required" });
+    }
+
+    // Ensure the API call uses await for proper error handling
+    try {
+      let response = await Cashfree.PGOrderFetchPayment("2023-08-01", orderid);
+      res.json(response.data);
+    } catch (error) {
+      console.error("Error fetching payment details:", error);
+
+      // Handle API response errors properly
+      res.status(500).json({
+        error: error.response?.data?.message || "Failed to fetch payment details",
+      });
+    }
   } catch (error) {
-    console.log("error in verify payment")
-    
+    console.error("Unexpected error in verify payment:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
