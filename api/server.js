@@ -119,24 +119,17 @@ app.get('/api/create-payment', async (req, res) => {
 
 app.post('/api/Verify_Payment', async (req, res) => {
   try {
-    let { orderId } = req.body;
-    console.error(" orderid = ", orderId);
-
-    Cashfree.PGOrderFetchPayments("2023-08-01", orderId)
-      .then((response) => {
-        res.json(response.data);
-      })
-      .catch((error) => {
-        console.error("Cashfree API Error:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: "Payment verification failed" });
-      });
-
+   let {orderId}=req.body;
+   console.error(" orderid = ",orderId)
+   console.log(" orderid send to server = ",orderId)
+   Cashfree.PGOrderFetchPayments("2023-08-01",orderId).then((response)=>{
+    res.json(response.data);
+   })
   } catch (error) {
     console.error("Unexpected error in verify payment:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 // Set the port for the server
 const PORT = process.env.PORT || 3000;
