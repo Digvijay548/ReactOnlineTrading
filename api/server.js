@@ -117,11 +117,12 @@ app.post('/api/Verify_Payment', async (req, res) => {
     if (!orderid) {
       return res.status(400).json({ error: "Order ID is required" });
     }
-
     // Ensure the API call uses await for proper error handling
     try {
       let response = await Cashfree.PGOrderFetchPayment("2023-08-01", orderid);
       res.json(response.data);
+      console.log(response.data);
+      console.error(response.data);
     } catch (error) {
       console.error("Error fetching payment details:", error);
 
