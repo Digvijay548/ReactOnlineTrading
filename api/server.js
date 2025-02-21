@@ -9,10 +9,7 @@ const { Client, Account } = require('node-appwrite');
 dotenv.config(); // Load environment variables from .env file
 const options = [
   cors({
-    origin: '*',
-    methods: '*',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    origin: '*'
   })
 ];
 const app = express();
