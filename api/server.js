@@ -136,9 +136,10 @@ app.post('/api/VerifyPayment', async (req, res) => {
    let {orderId}=req.body;
    console.error(" orderid = ",orderId)
    console.log(" orderid send to server = ",orderId)
-   Cashfree.PGOrderFetchPayments("2023-08-01",orderId).then((response)=>{
-    res.json(response.data);
-   })
+   const resp= await Cashfree.PGOrderFetchPayments("2023-08-01",orderId)
+   res.json(resp)
+   console.log(resp)
+   
   } catch (error) {
     console.error("Unexpected error in verify payment:", error);
     res.status(500).json({ error: "Internal Server Error" });
