@@ -9,7 +9,14 @@ const { Client, Account } = require('node-appwrite');
 dotenv.config(); // Load environment variables from .env file
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: "*", // Allow all origins (Change this to your frontend URL for security)
+  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type, Authorization",
+  credentials: true
+};
+app.use(cors(corsOptions));
+
 app.use(express.json()); // For parsing application/json
 
  // Cashfree credentials (set these as environment variables)
