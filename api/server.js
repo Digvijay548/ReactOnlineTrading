@@ -134,10 +134,10 @@ app.post('/api/Verify_Payment', async (req, res) => {
 app.post('/api/VerifyPayment', async (req, res) => {
   try {
     console.error(" orderid = ",req.body)
-   let {orderId}=req.body;
+   let {orderId,PaymentId}=req.body;
    
    console.log(" orderid send to server = ",orderId)
-   const resp= await Cashfree.PGOrderFetchPayment("2023-08-01",orderId)
+   const resp= await Cashfree.PGOrderFetchPayment("2023-08-01",orderId,PaymentId)
    res.json(resp)
    console.log(resp)
    
