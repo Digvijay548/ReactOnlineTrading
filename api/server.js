@@ -9,8 +9,6 @@ const { Client, Account } = require('node-appwrite');
 dotenv.config(); // Load environment variables from .env file
 
 const app = express();
-
-app.use(cors({ origin: "https://tradingapp4.netlify.app" })); // Enable CORS
 app.use(cors());
 app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({extended:true}));
