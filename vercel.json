@@ -20,6 +20,10 @@
       "dest": "/api/server.js"
     },
     {
+      "src": "/api/Verify_Payment",
+      "dest": "/api/server.js"
+    },
+    {
       "src": "/api/register",
       "dest": "/api/server.js"
     }
