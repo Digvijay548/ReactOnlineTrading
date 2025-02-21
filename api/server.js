@@ -123,7 +123,7 @@ app.post('/api/Verify_Payment',async (req,res)=>{
     console.log("error in verify payment")
     
   }
-})
+});
 
 // Set the port for the server
 const PORT = process.env.PORT || 3000;
