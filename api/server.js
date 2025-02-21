@@ -28,7 +28,7 @@ const account = new Account(client);
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ message: 'Server is up and running!' });
+  res.status(200).json({ message: 'Server is up and running! 21-02-2025 15-42' });
 });
 
 
