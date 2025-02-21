@@ -7,9 +7,16 @@ const {Cashfree}=require('cashfree-pg');
 const { Client, Account } = require('node-appwrite');
 
 dotenv.config(); // Load environment variables from .env file
-
+const options = [
+  cors({
+    origin: '*',
+    methods: '*',
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+];
 const app = express();
-app.use(cors());
+app.use(options);
 app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({extended:true}));
  // Cashfree credentials (set these as environment variables)
