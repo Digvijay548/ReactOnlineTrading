@@ -131,58 +131,21 @@ app.post('/api/Verify_Payment', async (req, res) => {
   }
 });
 
-const Cashfree = require('@cashfreepayments/cashfree-sdk'); // Ensure correct import
-
-exports.handler = async (event) => {
+app.post('/api/VerifyPayment', async (req, res) => {
   try {
-    console.log("🔍 Received request:", event.body);
-
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing request body" })
-      };
-    }
-
-    const { orderId, PaymentId } = JSON.parse(event.body);
-
-    if (!orderId || !PaymentId) {
-      console.error("❌ Missing orderId or PaymentId");
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing orderId or PaymentId" })
-      };
-    }
-
-    console.log("📤 Sending request to Cashfree:", { orderId, PaymentId });
-
-    // ✅ Call Cashfree API
-    const response = await Cashfree.PGOrderFetchPayment("2023-08-01", orderId, PaymentId);
-
-    console.log("✅ Cashfree Response:", response);
-
-    if (!response) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Failed to fetch payment details from Cashfree" })
-      };
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(response) // ✅ Send proper JSON response
-    };
-
+    console.error(" orderid = ",req.body)
+   let {orderId,PaymentId}=req.body;
+   
+   console.log(" orderid send to server = ",orderId)
+   const resp= await Cashfree.PGOrderFetchPayment("2023-08-01",orderId,PaymentId)
+   res.json(resp)
+   console.log(resp)
+   
   } catch (error) {
-    console.error("❌ Unexpected error in verify payment:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: error.message })
-    };
+    console.error("Unexpected error in verify payment:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-};
-
-
+});
 
 
 
