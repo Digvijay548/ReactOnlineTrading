@@ -109,13 +109,15 @@ app.get('/api/get-balance', async (req, res) => {
     const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
       Query.equal("email", [email])
     ]);
-console.log(userRecords)
+
+    console.log(userRecords);
+
     if (userRecords.documents.length > 0) {
       // ✅ Email found, return balance
       const user = userRecords.documents[0];
 
       // ✅ Convert balance from string to number (Default to 0 if missing)
-      const balance = user.balance ? parseFloat(user.balance) : 0;
+      const balance = user.Balance ? parseFloat(user.Balance) : 0;
       const lastTradeTime = user.last_trade_time || "Not Available";
 
       console.log(`✅ Balance for ${email}: ₹${balance}`);
@@ -130,6 +132,7 @@ console.log(userRecords)
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 // Health check route to verify server is running
