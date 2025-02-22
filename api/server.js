@@ -73,8 +73,8 @@ app.post('/api/update-balance', async (req, res) => {
       const newBalance = currentBalance + parseFloat(amount);
 
       await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
-        Balance: newBalance.toString(), // Convert back to string if needed
-        last_trade_time: new Date().toISOString()
+        Balance: newBalance.toString() // Convert back to string if needed
+        
       });
 
       console.log(`✅ Updated balance for ${email}: ₹${newBalance}`);
