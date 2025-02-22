@@ -208,6 +208,12 @@ console.log(password)
   try {
     // Register the user using Appwrite's createEmailAccount method
     const user = await account.create('unique()',email, password);
+    // ✅ Create an entry in the balance table
+    await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
+      email: email,
+      Balance: "0",  // Initialize balance as 0
+      last_trade_time: null  // Set last_trade_time as null
+    });
 
     // If registration is successful, return user data
     res.status(201).json({
