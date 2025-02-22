@@ -10,6 +10,9 @@
     {
     "src": "/api/update-balance",
     "dest": "/api/server.js"
+  },{
+    "src": "/api/start-trade",
+    "dest": "/api/server.js"
   },
     {
       "src": "/api/get-balance",

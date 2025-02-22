@@ -46,6 +46,62 @@ const database = new Databases(client);
 const DB_ID = process.env.APPWRITE_DATABASE_ID;  // Set your Appwrite database ID
 const COLLECTION_ID = process.env.APPWRITE_COLLECTION_ID;  // Set your collection ID
 
+app.post('/api/start-trade', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Missing email" });
+  }
+
+  try {
+    console.log("🔍 Checking last trade date for:", email);
+
+    // ✅ Query to check if user exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])
+    ]);
+
+    if (userRecords.documents.length > 0) {
+      const user = userRecords.documents[0];
+      const userId = user.$id;
+      const currentBalance = parseFloat(user.Balance) || 0;
+      const lastTradeTime = user.last_trade_time ? new Date(user.last_trade_time) : null;
+      const currentDate = new Date().toISOString().split("T")[0]; // Get YYYY-MM-DD format
+
+      if (lastTradeTime) {
+        const lastTradeDate = lastTradeTime.toISOString().split("T")[0]; // Extract date
+
+        if (lastTradeDate === currentDate) {
+          console.log(`❌ Trade blocked: ${email} already traded today (${lastTradeDate})`);
+          return res.status(403).json({
+            error: "Trade allowed only once per day",
+            last_trade_time: lastTradeTime.toISOString()
+          });
+        }
+      }
+
+      // ✅ Increase balance by 4% and update trade date
+      const increasedBalance = currentBalance * 1.04;
+
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        Balance: increasedBalance.toFixed(2).toString(), // Convert to string with 2 decimals
+        last_trade_time: new Date().toISOString() // Update last trade time
+      });
+
+      console.log(`✅ Trade successful for ${email}: New Balance ₹${increasedBalance}`);
+      return res.json({
+        message: "Trade started successfully, balance updated by 4%",
+        balance: increasedBalance
+      });
+    } else {
+      console.error(`❌ User not found: ${email}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("❌ Error starting trade:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 
 
