@@ -67,11 +67,13 @@ app.post('/api/update-balance', async (req, res) => {
 
     if (userRecords.documents.length > 0) {
       // ✅ If user exists, update the balance
-      const userId = userRecords.documents[0].$id;
-      const newBalance = userRecords.documents[0].balance + parseFloat(amount);
+      const user = userRecords.documents[0];
+      const userId = user.$id;
+      const currentBalance = parseFloat(user.Balance) || 0; // Ensure numeric conversion
+      const newBalance = currentBalance + parseFloat(amount);
 
       await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
-        balance: newBalance,
+        Balance: newBalance.toString(), // Convert back to string if needed
         last_trade_time: new Date().toISOString()
       });
 
@@ -81,7 +83,7 @@ app.post('/api/update-balance', async (req, res) => {
       // ✅ If user does not exist, create a new entry
       const newUser = await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
         email,
-        balance: parseFloat(amount),
+        Balance: parseFloat(amount).toString(), // Store as string if needed
         last_trade_time: new Date().toISOString()
       });
 
@@ -93,6 +95,7 @@ app.post('/api/update-balance', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 app.get('/api/get-balance', async (req, res) => {
