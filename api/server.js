@@ -109,7 +109,7 @@ app.get('/api/get-balance', async (req, res) => {
     const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
       Query.equal("email", [email])
     ]);
-
+console.log(userRecords)
     if (userRecords.documents.length > 0) {
       // ✅ Email found, return balance
       const user = userRecords.documents[0];
