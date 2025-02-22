@@ -8,6 +8,14 @@
   ],
   "routes": [
     {
+    "src": "/api/update-balance",
+    "dest": "/api/server.js"
+  },
+    {
+      "src": "/api/get-balance",
+      "dest": "/api/server.js"
+    },
+    {
       "src": "/api/health",
       "dest": "/api/server.js"
     },

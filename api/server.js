@@ -4,7 +4,8 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const crypto=require('crypto');
 const {Cashfree}=require('cashfree-pg');
-const { Client, Account } = require('node-appwrite');
+const { Client, Account,Query } = require('node-appwrite');
+
 
 
 dotenv.config(); // Load environment variables from .env file
@@ -33,6 +34,89 @@ client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
       //.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
 
 const account = new Account(client);
+const database = new Databases(client);
+// ✅ Appwrite database credentials
+const DB_ID = process.env.APPWRITE_DATABASE_ID;  // Set your Appwrite database ID
+const COLLECTION_ID = process.env.APPWRITE_COLLECTION_ID;  // Set your collection ID
+
+
+
+
+// ✅ Create or Update Balance in Appwrite Database
+app.post('/api/update-balance', async (req, res) => {
+  const { email, amount } = req.body;
+
+  if (!email || amount === undefined) {
+    return res.status(400).json({ error: "Missing email or amount" });
+  }
+
+  try {
+    console.log("🔍 Checking balance for email:", email);
+
+    // ✅ Query to check if email exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])  // ✅ Using Query.equal() correctly
+    ]);
+
+    if (userRecords.documents.length > 0) {
+      // ✅ If user exists, update the balance
+      const userId = userRecords.documents[0].$id;
+      const newBalance = userRecords.documents[0].balance + parseFloat(amount);
+
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        balance: newBalance,
+        last_trade_time: new Date().toISOString()
+      });
+
+      console.log(`✅ Updated balance for ${email}: ₹${newBalance}`);
+      return res.json({ message: "Balance updated successfully", balance: newBalance });
+    } else {
+      // ✅ If user does not exist, create a new entry
+      const newUser = await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
+        email,
+        balance: parseFloat(amount),
+        last_trade_time: new Date().toISOString()
+      });
+
+      console.log(`✅ New user added: ${email} with balance ₹${amount}`);
+      return res.json({ message: "New balance added", balance: amount });
+    }
+  } catch (error) {
+    console.error("❌ Error updating balance:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+app.get('/api/get-balance', async (req, res) => {
+  const { email } = req.query; // Get email from query params
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    console.log("🔍 Fetching balance for email:", email);
+
+    // ✅ Query Appwrite to check if email exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])
+    ]);
+
+    if (userRecords.documents.length > 0) {
+      // ✅ Email found, return balance
+      const user = userRecords.documents[0];
+      console.log(`✅ Balance for ${email}: ₹${user.balance}`);
+      return res.json({ balance: user.balance, last_trade_time: user.last_trade_time });
+    } else {
+      // ❌ Email not found
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("❌ Error fetching balance:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
