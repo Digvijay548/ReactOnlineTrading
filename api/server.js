@@ -113,10 +113,16 @@ app.get('/api/get-balance', async (req, res) => {
     if (userRecords.documents.length > 0) {
       // ✅ Email found, return balance
       const user = userRecords.documents[0];
-      console.log(`✅ Balance for ${email}: ₹${user.balance}`);
-      return res.json({ balance: user.balance, last_trade_time: user.last_trade_time });
+
+      // ✅ Convert balance from string to number (Default to 0 if missing)
+      const balance = user.balance ? parseFloat(user.balance) : 0;
+      const lastTradeTime = user.last_trade_time || "Not Available";
+
+      console.log(`✅ Balance for ${email}: ₹${balance}`);
+      return res.json({ balance, last_trade_time: lastTradeTime });
     } else {
       // ❌ Email not found
+      console.error(`❌ User not found: ${email}`);
       return res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
@@ -124,6 +130,7 @@ app.get('/api/get-balance', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
