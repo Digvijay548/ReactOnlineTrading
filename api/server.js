@@ -6,6 +6,7 @@ const crypto=require('crypto');
 const {Cashfree}=require('cashfree-pg');
 const { Client, Account } = require('node-appwrite');
 
+
 dotenv.config(); // Load environment variables from .env file
 
 const app = express();
@@ -131,22 +132,33 @@ app.post('/api/Verify_Payment', async (req, res) => {
   }
 });
 
+// ✅ Verify Payment using Cashfree API
 app.post('/api/VerifyPayment', async (req, res) => {
   try {
-    console.error(" orderid = ",req.body)
-   let {orderId,PaymentId}=req.body;
-   
-   console.log(" orderid send to server = ",orderId)
-   const resp= await Cashfree.PGOrderFetchPayment("2023-08-01",orderId,PaymentId)
-   res.json(resp)
-   console.log(resp)
-   
+    const { orderId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Missing orderId" });
+    }
+
+    console.log("🔍 Verifying payment for Order ID:", orderId);
+
+    const response = await axios.get(`https://api.cashfree.com/pg/orders/${orderId}`, {
+      headers: {
+        "x-api-version": "2023-08-01",
+        "x-client-id": process.env.CASHFREE_CLIENT_ID,
+        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET
+      }
+    });
+
+    console.log("✅ Payment verification response:", response.data);
+    res.json(response.data);
+
   } catch (error) {
-    console.error("Unexpected error in verify payment:", error);
+    console.error("❌ Payment verification error:", error.response?.data || error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 
 // Set the port for the server
