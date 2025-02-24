@@ -17,7 +17,7 @@ const corsOptions = {
   allowedHeaders: "Content-Type, Authorization",
   credentials: true
 };
-app.use(cors());
+app.use(cors(corsOptions));
 
 //app.use((req, res, next) => {
  // res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins (or specify domain)
@@ -146,8 +146,6 @@ app.post('/api/Add-Account', async (req, res) => {
 
 });
 
-
-
 // ✅ Create or Update Balance in Appwrite Database
 app.post('/api/update-balance', async (req, res) => {
   const { email, amount } = req.body;
@@ -262,6 +260,49 @@ app.get('/api/get-balance', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+// ✅ Get Account Details from  Appwrite Database
+app.get('/api/get-AccountDetails', async (req, res) => {
+  const { email } = req.query; // Get email from query params
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    console.log("🔍 Fetching Account Details for email:", email);
+
+    // ✅ Query Appwrite to check if email exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])
+    ]);
+
+    console.log(userRecords);
+
+    if (userRecords.documents.length > 0) {
+      // ✅ Email found, return AccountDetails
+      const user = userRecords.documents[0];
+
+      // ✅ Convert balance from string to number (Default to 0 if missing)
+      const Accountnumber = user.accountnumber || "Not Available";
+      const Accountholdername = user.accountholdername || "Not Available";
+      const Ifsccode=user.ifsccode|| "Not Available";
+      const Balance = user.Balance ? parseFloat(user.Balance) : 0;
+      const LastTradeTime = user.last_trade_time || "Not Available";
+
+      console.log(`✅ Details for ${email}: Account No :${Accountnumber}, User Name : ${Accountholdername}, IFSC Code : ${Ifsccode}`);
+      return res.json({ accountnumber:Accountnumber,accountholdername:Accountholdername, ifsccode: Ifsccode ,balance:Balance,last_trade_time:LastTradeTime});
+    } else {
+      // ❌ Email not found
+      console.error(`❌ User not found: ${email}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("❌ Error fetching Account Details:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
