@@ -231,10 +231,7 @@ app.post('/api/register', async (req, res) => {
   const { email, password ,referralCode} = req.body;
 console.log(email)
 console.log(password)
-if (!referralCode)
-{
-  referralCode="Not Applied"
-}
+const finalReferralCode = referralCode || "Not Applied";
   try {
     // Register the user using Appwrite's createEmailAccount method
     const user = await account.create('unique()',email, password);
@@ -243,11 +240,11 @@ if (!referralCode)
       email: email,
       Balance: "0",  // Initialize balance as 0
       last_trade_time: null , // Set last_trade_time as null
-      referralCode:referralCode, //emailid of refered person
+      referralCode:finalReferralCode, //emailid of refered person
       NumberOfTimeBalance:'0'
     });
 
-    console.log(`✅ Registration successful ${email}: Referal Code ${referralCode}`);
+    console.log(`✅ Registration successful ${email}: Referal Code ${finalReferralCode}`);
     
 
     // If registration is successful, return user data
