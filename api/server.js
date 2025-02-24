@@ -114,6 +114,7 @@ app.post('/api/update-balance', async (req, res) => {
   }
 
   try {
+    //#region for update balance and refer
     console.log("🔍 Checking balance for email:", email);
 
     // ✅ Query to check if email exists
@@ -126,16 +127,45 @@ app.post('/api/update-balance', async (req, res) => {
       const user = userRecords.documents[0];
       const userId = user.$id;
       const currentBalance = parseFloat(user.Balance) || 0; // Ensure numeric conversion
-      const newBalance = currentBalance + parseFloat(amount);
-
+      const NumberOfTimeBalance = parseFloat(user.NumberOfTimeBalance) || 0; // Ensure numeric conversion
+      const newBalance = currentBalance + parseFloat(amount);      
+      const referralCode=user.referralCode; //which is email
+      const newNumberOfTimeBalance=NumberOfTimeBalance+ parseFloat('1');
       await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
         Balance: newBalance.toString() // Convert back to string if needed
-        
-      });
+      });  //update balance
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        NumberOfTimeBalance: newNumberOfTimeBalance.toString() // Convert back to string if needed        
+      }); //update no of time balance
+      //#endregion
+
+
+      //#region for referal
+      if(user.NumberOfTimeBalance=='0' && referralCode!=null)
+      {
+        const ReferalUser = await database.listDocuments(DB_ID, COLLECTION_ID, [
+          Query.equal("email", [referralCode])  // ✅ Using Query.equal() correctly
+        ]);
+        if (ReferalUser.documents.length > 0) {
+          // ✅ If user exists, update the balance
+          const user = ReferalUser.documents[0];
+          const userId = user.$id;
+          const currentBalance = parseFloat(user.Balance) || 0;
+          const newBalance = currentBalance + parseFloat("150");
+          await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+            Balance: newBalance.toString() // Convert back to string if needed
+          });
+          console.log(`✅ Updated balance for Refered People ${email}: ₹${newBalance}`);
+        }
+      }
+      //#endregion
 
       console.log(`✅ Updated balance for ${email}: ₹${newBalance}`);
+      console.log(`✅ Updated NumberOfTimeBalance for ${email}: ₹${newNumberOfTimeBalance}`);
       return res.json({ message: "Balance updated successfully", balance: newBalance });
-    } else {
+    } 
+    else
+     {
       // ✅ If user does not exist, create a new entry
       const newUser = await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
         email,
@@ -151,8 +181,6 @@ app.post('/api/update-balance', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 app.get('/api/get-balance', async (req, res) => {
   const { email } = req.query; // Get email from query params
@@ -192,8 +220,6 @@ app.get('/api/get-balance', async (req, res) => {
   }
 });
 
-
-
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is up and running! 21-02-2025 15-42' });
@@ -202,9 +228,13 @@ app.get('/api/health', (req, res) => {
 
 // Register route to create a new user with Appwrite
 app.post('/api/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password ,referralCode} = req.body;
 console.log(email)
 console.log(password)
+if (!referralCode)
+{
+  referralCode="Not Applied"
+}
   try {
     // Register the user using Appwrite's createEmailAccount method
     const user = await account.create('unique()',email, password);
@@ -212,8 +242,13 @@ console.log(password)
     await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
       email: email,
       Balance: "0",  // Initialize balance as 0
-      last_trade_time: null  // Set last_trade_time as null
+      last_trade_time: null , // Set last_trade_time as null
+      referralCode:referralCode, //emailid of refered person
+      NumberOfTimeBalance:'0'
     });
+
+    console.log(`✅ Registration successful ${email}: Referal Code ${referralCode}`);
+    
 
     // If registration is successful, return user data
     res.status(201).json({
