@@ -41,6 +41,14 @@
     {
       "src": "/api/register",
       "dest": "/api/server.js"
-    }
+    },
+    {
+      "src": "/api/get-AccountDetails",
+      "dest": "/api/server.js"
+    },
+    {
+      "src": "/api/Add-Account",
+      "dest": "/api/server.js"
+    }    
   ]
 }
