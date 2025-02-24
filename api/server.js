@@ -103,6 +103,49 @@ app.post('/api/start-trade', async (req, res) => {
   }
 });
 
+// ✅ Create or Update Add-Account in Appwrite Database
+app.post('/api/Add-Account', async (req, res) => {
+  const { email, accountnumber,accountholdername,ifsccode } = req.body;
+  if (!email || !accountnumber || !accountholdername || !ifsccode) {
+    return res.status(400).json({ error: "Missing email or accountnumber" });
+  }
+  try {
+
+       //#region for update balance and refer
+    console.log("🔍 Checking balance for email:", email);
+
+    // ✅ Query to check if email exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])  // ✅ Using Query.equal() correctly
+    ]);
+
+    if (userRecords.documents.length > 0) {
+      // ✅ If user exists, update the balance
+      const user = userRecords.documents[0];
+      const userId = user.$id;
+      const Accountnumber=accountnumber;
+      const Accountholdername= accountholdername;
+      const Ifsccode= ifsccode;
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        accountnumber: Accountnumber.toString() // Convert back to string if needed
+      });  //update account
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        accountholdername: Accountholdername.toString() // Convert back to string if needed
+      });  //update accountholdername
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        ifsccode: Ifsccode.toString() // Convert back to string if needed
+      });  //update accountholdername
+
+      console.log(`✅ Updated Account Details  ${email} : ${Accountholdername}: ${Accountnumber}`);
+    }
+      
+  } catch (error) {
+    console.error("❌ Error updating balance:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+
+});
+
 
 
 // ✅ Create or Update Balance in Appwrite Database
