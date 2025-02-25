@@ -357,7 +357,7 @@ app.post('/api/getWithdrawal', async (req, res) => {
 
     // ✅ Condition checks
     if (accountNumber === "Not Available" || accountHolderName === "Not Available" || ifscCode === "Not Available") {
-      return res.status(400).json({ error: "Bank account details are missing. Please update your account." });
+      return res.json({ error: "Bank account details are missing. Please update your account." });
     }
 
     if (balance < 1000) {
