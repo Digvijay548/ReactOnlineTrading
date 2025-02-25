@@ -51,7 +51,7 @@
       "dest": "/api/server.js"
     } ,
     {
-      "src": "get-Withdrawal",
+      "src": "getWithdrawal",
       "dest": "/api/server.js"
     }   
   ]
