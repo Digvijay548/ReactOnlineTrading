@@ -346,7 +346,7 @@ app.post('/api/getWithdrawal', async (req, res) => {
     const accountHolderName = user.accountholdername || "Not Available";
     console.log("✅ Extract user details with proper default values accountHolderName:", accountHolderName);
     const ifscCode = user.ifsccode || "Not Available";
-    console.log("✅ Extract user details with proper default values ifsccode:", ifsccode);
+    console.log("✅ Extract user details with proper default values ifsccode:", ifscCode);
     const balance = user.Balance ? parseFloat(user.Balance) : 0;
 
     // ✅ Fix for empty `Withdrawal_Amount` and `Withdrawal_Count`
