@@ -332,7 +332,7 @@ app.post('/api/getWithdrawal', async (req, res) => {
 
     if (userRecords.documents.length === 0) {
       console.error(`❌ User not found: ${email}`);
-      return res.status(404).json({ error: "User not found" });
+      return res.json({ error: "User not found" });
     }
 
 
@@ -361,11 +361,11 @@ app.post('/api/getWithdrawal', async (req, res) => {
     }
 
     if (balance < 1000) {
-      return res.status(400).json({ error: "Minimum balance of ₹1000 is required", balance });
+      return res.json({ error: "Minimum balance of ₹1000 is required", balance });
     }
 
     if (withdrawalAmount !== 0 || withdrawalCount !== 0) {
-      return res.status(400).json({
+      return res.json({
         error: "Your previous withdrawal request is still being processed. Please wait.",
         withdrawal_balance: withdrawalAmount
       });
