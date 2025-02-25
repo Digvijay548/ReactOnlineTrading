@@ -18,8 +18,7 @@ const corsOptions = {
   allowedHeaders: "Content-Type, Authorization",
   credentials: true
 };
-//app.use(cors(corsOptions));
-app.use(cors());
+app.use(cors(corsOptions));
 
 //app.use((req, res, next) => {
  // res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins (or specify domain)
@@ -307,72 +306,83 @@ app.get('/api/get-AccountDetails', async (req, res) => {
 
 
 // required email and amount
-app.post('/api/getWithdrawal',async (req, res) => {
-  const { email,amount }  = req.body;
-  
-  console.log("🔍 Fetching Account Details in get-Withdrawal for email:", email);
-  console.log("🔍 Fetching Account Details in get-Withdrawal for amount:", amount);
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
-  }
+app.post('/api/getWithdrawal', async (req, res) => {
   try {
-    console.log("🔍 Fetching Account Details for email:", email);
+    const { email, amount } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: "Valid withdrawal amount is required" });
+    }
+
+    console.log("🔍 Fetching Account Details in get-Withdrawal for email:", email);
+    console.log("🔍 Fetching Account Details in get-Withdrawal for amount:", amount);
 
     // ✅ Query Appwrite to check if email exists
     const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
       Query.equal("email", [email])
     ]);
 
-    console.log(userRecords);
-
-    if (userRecords.documents.length > 0) {
-      // ✅ Email found, return AccountDetails
-      const user = userRecords.documents[0];
-      const userId = user.$id;
-      // ✅ Convert balance from string to number (Default to 0 if missing)
-      const Accountnumber = user.accountnumber || "Not Available";
-      const Accountholdername = user.accountholdername || "Not Available";
-      const Ifsccode=user.ifsccode|| "Not Available";
-      const Balance = user.Balance ? parseFloat(user.Balance) : 0;
-      const LastTradeTime = user.last_trade_time || "Not Available";
-      const Withdrawal_Amount=user.Withdrawal_Amount? parseFloat(user.Withdrawal_Amount) : 0;
-      const Withdrawal_Count=user.Withdrawal_Count? parseFloat(user.Withdrawal_Amount) : 0;
-      if(Accountnumber=="Not Available" || Accountholdername!="Not Available" || Ifsccode!="Not Available")
-      {
-        return res.status(404).json({error:"Account Not Added"})
-      }
-      if(Balance<1000)
-      {
-        return res.status(404).json({error:"Minimum balance 1000 required",balance:Balance})
-      }
-      if(Withdrawal_Amount!=0 || Withdrawal_Count!=0)
-      {
-        return res.status(404).json({error:"Your previous request is in process please wait some time",withdrawal_balance:Withdrawal_Amount})
-      }
-
-      const FinalBal=Balance-parseFloat(amount);
-
-      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
-        Balance: FinalBal.toString() // Convert back to string if needed
-      });  //update balance
-      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
-        Withdrawal_Amount: amount.toString() // Convert back to string if needed        
-      }); //update no of time balance
-      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
-        Withdrawal_Count: "1" // Convert back to string if needed        
-      }); //update no of time balance
-
-
-      console.log(`✅ Updated for ${email}: Account No :${Accountnumber}, User Name : ${Accountholdername}, IFSC Code : ${Ifsccode},Withdrawal Amount : ${amount},Final Amount after withdrawal : ${FinalBal}`);
-      return res.json({ accountnumber:Accountnumber,accountholdername:Accountholdername, ifsccode: Ifsccode ,finalbalance:FinalBal,withdrawal_amount:amount});
-    } else {
-      // ❌ Email not found
+    if (userRecords.documents.length === 0) {
       console.error(`❌ User not found: ${email}`);
       return res.status(404).json({ error: "User not found" });
     }
+
+    const user = userRecords.documents[0];
+    const userId = user.$id;
+
+    // Extract user details with proper default values
+    const accountNumber = user.accountnumber || "Not Available";
+    const accountHolderName = user.accountholdername || "Not Available";
+    const ifscCode = user.ifsccode || "Not Available";
+    const balance = user.Balance ? parseFloat(user.Balance) : 0;
+    
+    // ✅ Fix for empty `Withdrawal_Amount` and `Withdrawal_Count`
+    const withdrawalAmount = user.Withdrawal_Amount && !isNaN(user.Withdrawal_Amount) ? parseFloat(user.Withdrawal_Amount) : 0;
+    const withdrawalCount = user.Withdrawal_Count && !isNaN(user.Withdrawal_Count) ? parseInt(user.Withdrawal_Count) : 0;
+
+    // ✅ Condition checks
+    if (accountNumber === "Not Available" || accountHolderName === "Not Available" || ifscCode === "Not Available") {
+      return res.status(400).json({ error: "Bank account details are missing. Please update your account." });
+    }
+
+    if (balance < 1000) {
+      return res.status(400).json({ error: "Minimum balance of ₹1000 is required", balance });
+    }
+
+    if (withdrawalAmount !== 0 || withdrawalCount !== 0) {
+      return res.status(400).json({
+        error: "Your previous withdrawal request is still being processed. Please wait.",
+        withdrawal_balance: withdrawalAmount
+      });
+    }
+
+    // ✅ Calculate final balance after withdrawal
+    const finalBalance = balance - parseFloat(amount);
+
+    // ✅ Batch update using `Promise.all()` to optimize performance
+    await Promise.all([
+      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Balance: finalBalance.toString() }),
+      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Amount: amount.toString() }),
+      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Count: "1" })
+    ]);
+
+    console.log(`✅ Withdrawal successful for ${email}: Account No: ${accountNumber}, Name: ${accountHolderName}, IFSC: ${ifscCode}, Withdrawal: ₹${amount}, Final Balance: ₹${finalBalance}`);
+
+    return res.json({
+      message: "Withdrawal request submitted successfully",
+      accountnumber: accountNumber,
+      accountholdername: accountHolderName,
+      ifsccode: ifscCode,
+      finalbalance: finalBalance,
+      withdrawal_amount: amount
+    });
+
   } catch (error) {
-    console.error("❌ Error fetching Account Details:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("❌ Error processing withdrawal:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -399,6 +409,8 @@ const finalReferralCode = referralCode || "Not Applied";
       referralCode:finalReferralCode, //emailid of refered person
       NumberOfTimeBalance:'0'
     });
+
+    await  
 
     console.log(`✅ Registration successful ${email}: Referal Code ${finalReferralCode}`);
     
