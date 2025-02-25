@@ -375,11 +375,11 @@ app.post('/api/getWithdrawal', async (req, res) => {
     const finalBalance = balance - parseFloat(amount);
 
     // ✅ Batch update using `Promise.all()` to optimize performance
-    await Promise.all([
-      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Balance: finalBalance.toString() }),
-      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Amount: amount.toString() }),
-      database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Count: "1" })
-    ]);
+    
+    await database.updateDocument(DB_ID, COLLECTION_ID, userId, { Balance: finalBalance.toString() });
+    await database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Amount: amount.toString() });
+    await database.updateDocument(DB_ID, COLLECTION_ID, userId, { Withdrawal_Count: "1" });
+    
 
     console.log(`✅ Withdrawal successful for ${email}: Account No: ${accountNumber}, Name: ${accountHolderName}, IFSC: ${ifscCode}, Withdrawal: ₹${amount}, Final Balance: ₹${finalBalance}`);
 
