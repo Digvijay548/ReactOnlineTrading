@@ -2,9 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const crypto=require('crypto');
-const {Cashfree}=require('cashfree-pg');
-const { Client, Account,Query,Databases,ID } = require('node-appwrite');
+const crypto = require('crypto');
+const { Cashfree } = require('cashfree-pg');
+const { Client, Account, Query, Databases, ID } = require('node-appwrite');
 const { error } = require('console');
 
 
@@ -21,25 +21,25 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 //app.use((req, res, next) => {
- // res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins (or specify domain)
- // res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
- // res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
- // next();
+// res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins (or specify domain)
+// res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+// res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+// next();
 //});
 
 app.use(express.json()); // For parsing application/json
 
- // Cashfree credentials (set these as environment variables)
+// Cashfree credentials (set these as environment variables)
 
- Cashfree.XEnvironment=Cashfree.Environment.PRODUCTION;
- Cashfree.XClientId = process.env.CASHFREE_CLIENT_ID;
- Cashfree.XClientSecret = process.env.CASHFREE_CLIENT_SECRET;
+Cashfree.XEnvironment = Cashfree.Environment.PRODUCTION;
+Cashfree.XClientId = process.env.CASHFREE_CLIENT_ID;
+Cashfree.XClientSecret = process.env.CASHFREE_CLIENT_SECRET;
 
 // Initialize the Appwrite client for authentication
 const client = new Client();
 client.setEndpoint(process.env.APPWRITE_ENDPOINT) // Set Appwrite endpoint
-      .setProject(process.env.APPWRITE_PROJECT_ID); // Set your Appwrite project ID
-      //.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
+  .setProject(process.env.APPWRITE_PROJECT_ID); // Set your Appwrite project ID
+//.setKey(process.env.APPWRITE_API_KEY); // Set your Appwrite API key
 
 const account = new Account(client);
 const database = new Databases(client);
@@ -106,13 +106,13 @@ app.post('/api/start-trade', async (req, res) => {
 
 // ✅ Create or Update Add-Account in Appwrite Database
 app.post('/api/Add-Account', async (req, res) => {
-  const { email, accountnumber,accountholdername,ifsccode } = req.body;
+  const { email, accountnumber, accountholdername, ifsccode } = req.body;
   if (!email || !accountnumber || !accountholdername || !ifsccode) {
     return res.status(400).json({ error: "Missing email or accountnumber" });
   }
   try {
 
-       //#region for update balance and refer
+    //#region for update balance and refer
     console.log("🔍 Checking balance for email:", email);
 
     // ✅ Query to check if email exists
@@ -124,9 +124,9 @@ app.post('/api/Add-Account', async (req, res) => {
       // ✅ If user exists, update the balance
       const user = userRecords.documents[0];
       const userId = user.$id;
-      const Accountnumber=accountnumber;
-      const Accountholdername= accountholdername;
-      const Ifsccode= ifsccode;
+      const Accountnumber = accountnumber;
+      const Accountholdername = accountholdername;
+      const Ifsccode = ifsccode;
       await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
         accountnumber: Accountnumber.toString() // Convert back to string if needed
       });  //update account
@@ -139,7 +139,7 @@ app.post('/api/Add-Account', async (req, res) => {
 
       console.log(`✅ Updated Account Details  ${email} : ${Accountholdername}: ${Accountnumber} : ${Ifsccode}`);
     }
-      
+
   } catch (error) {
     console.error("❌ Error updating balance:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -170,9 +170,9 @@ app.post('/api/update-balance', async (req, res) => {
       const userId = user.$id;
       const currentBalance = parseFloat(user.Balance) || 0; // Ensure numeric conversion
       const NumberOfTimeBalance = parseFloat(user.NumberOfTimeBalance) || 0; // Ensure numeric conversion
-      const newBalance = currentBalance + parseFloat(amount);      
-      const referralCode=user.referralCode; //which is email
-      const newNumberOfTimeBalance=NumberOfTimeBalance+ parseFloat('1');
+      const newBalance = currentBalance + parseFloat(amount);
+      const referralCode = user.referralCode; //which is email
+      const newNumberOfTimeBalance = NumberOfTimeBalance + parseFloat('1');
       await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
         Balance: newBalance.toString() // Convert back to string if needed
       });  //update balance
@@ -183,8 +183,7 @@ app.post('/api/update-balance', async (req, res) => {
 
 
       //#region for referal
-      if(user.NumberOfTimeBalance=='0' && referralCode!=null)
-      {
+      if (user.NumberOfTimeBalance == '0' && referralCode != null) {
         const ReferalUser = await database.listDocuments(DB_ID, COLLECTION_ID, [
           Query.equal("email", [referralCode])  // ✅ Using Query.equal() correctly
         ]);
@@ -205,9 +204,8 @@ app.post('/api/update-balance', async (req, res) => {
       console.log(`✅ Updated balance for ${email}: ₹${newBalance}`);
       console.log(`✅ Updated NumberOfTimeBalance for ${email}: ₹${newNumberOfTimeBalance}`);
       return res.json({ message: "Balance updated successfully", balance: newBalance });
-    } 
-    else
-     {
+    }
+    else {
       // ✅ If user does not exist, create a new entry
       const newUser = await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
         email,
@@ -287,12 +285,12 @@ app.get('/api/get-AccountDetails', async (req, res) => {
       // ✅ Convert balance from string to number (Default to 0 if missing)
       const Accountnumber = user.accountnumber || "Not Available";
       const Accountholdername = user.accountholdername || "Not Available";
-      const Ifsccode=user.ifsccode|| "Not Available";
+      const Ifsccode = user.ifsccode || "Not Available";
       const Balance = user.Balance ? parseFloat(user.Balance) : 0;
       const LastTradeTime = user.last_trade_time || "Not Available";
 
       console.log(`✅ Details for ${email}: Account No :${Accountnumber}, User Name : ${Accountholdername}, IFSC Code : ${Ifsccode}`);
-      return res.json({ accountnumber:Accountnumber,accountholdername:Accountholdername, ifsccode: Ifsccode ,balance:Balance,last_trade_time:LastTradeTime});
+      return res.json({ accountnumber: Accountnumber, accountholdername: Accountholdername, ifsccode: Ifsccode, balance: Balance, last_trade_time: LastTradeTime });
     } else {
       // ❌ Email not found
       console.error(`❌ User not found: ${email}`);
@@ -320,28 +318,42 @@ app.post('/api/getWithdrawal', async (req, res) => {
     console.log("🔍 Fetching Account Details in get-Withdrawal for email:", email);
     console.log("🔍 Fetching Account Details in get-Withdrawal for amount:", amount);
 
-    // ✅ Query Appwrite to check if email exists
-    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+    try {
+      console.log("✅ Query Appwrite to check if email exists:");
+      // ✅ Query Appwrite to check if email exists
+    var userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
       Query.equal("email", [email])
     ]);
+    } catch (error) {
+      console.log("❌ Query Appwrite error ");
+    }
+    
+    console.log("🔍 Fetching Account Details in get-Withdrawal for userRecords:", userRecords);
 
     if (userRecords.documents.length === 0) {
       console.error(`❌ User not found: ${email}`);
       return res.status(404).json({ error: "User not found" });
     }
 
+
+    console.log("✅ userRecords found :");
     const user = userRecords.documents[0];
     const userId = user.$id;
-
+    console.log("✅ Extract user details with proper default values start");
     // Extract user details with proper default values
     const accountNumber = user.accountnumber || "Not Available";
+    console.log("✅ Extract user details with proper default values accountNumber:", accountNumber);
     const accountHolderName = user.accountholdername || "Not Available";
+    console.log("✅ Extract user details with proper default values accountHolderName:", accountHolderName);
     const ifscCode = user.ifsccode || "Not Available";
+    console.log("✅ Extract user details with proper default values ifsccode:", ifsccode);
     const balance = user.Balance ? parseFloat(user.Balance) : 0;
-    
+
     // ✅ Fix for empty `Withdrawal_Amount` and `Withdrawal_Count`
     const withdrawalAmount = user.Withdrawal_Amount && !isNaN(user.Withdrawal_Amount) ? parseFloat(user.Withdrawal_Amount) : 0;
     const withdrawalCount = user.Withdrawal_Count && !isNaN(user.Withdrawal_Count) ? parseInt(user.Withdrawal_Count) : 0;
+    console.log("✅ Condition for the  check withdrawalAmount:",typeof(user.Withdrawal_Amount).toString());
+    console.log("✅ Condition for the  check withdrawalAmount:",typeof(user.Withdrawal_Count).toString());
 
     // ✅ Condition checks
     if (accountNumber === "Not Available" || accountHolderName === "Not Available" || ifscCode === "Not Available") {
@@ -394,26 +406,26 @@ app.get('/api/health', (req, res) => {
 
 // Register route to create a new user with Appwrite
 app.post('/api/register', async (req, res) => {
-  const { email, password ,referralCode} = req.body;
-console.log(email)
-console.log(password)
-const finalReferralCode = referralCode || "Not Applied";
+  const { email, password, referralCode } = req.body;
+  console.log(email)
+  console.log(password)
+  const finalReferralCode = referralCode || "Not Applied";
   try {
     // Register the user using Appwrite's createEmailAccount method
-    const user = await account.create('unique()',email, password);
+    const user = await account.create('unique()', email, password);
     // ✅ Create an entry in the balance table
     await database.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
       email: email,
       Balance: "0",  // Initialize balance as 0
-      last_trade_time: null , // Set last_trade_time as null
-      referralCode:finalReferralCode, //emailid of refered person
-      NumberOfTimeBalance:'0'
+      last_trade_time: null, // Set last_trade_time as null
+      referralCode: finalReferralCode, //emailid of refered person
+      NumberOfTimeBalance: '0'
     });
 
-    await  
+    await
 
-    console.log(`✅ Registration successful ${email}: Referal Code ${finalReferralCode}`);
-    
+      console.log(`✅ Registration successful ${email}: Referal Code ${finalReferralCode}`);
+
 
     // If registration is successful, return user data
     res.status(201).json({
@@ -448,20 +460,19 @@ app.post('/api/login', async (req, res) => {
     res.status(401).json({ error: 'Invalid credentials or error occurred during login' });
   }
 });
-function GeterateId()
-{
+function GeterateId() {
   console.log(Cashfree.XClientId.toString())
-  const UniqId=crypto.randomBytes(16).toString('hex');
-  const hash= crypto.createHash('sha256');
+  const UniqId = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.createHash('sha256');
   hash.update(UniqId);
 
-  const orderid=hash.digest('hex');
-  return orderid.substring(0,12);
+  const orderid = hash.digest('hex');
+  return orderid.substring(0, 12);
 }
 
 // API route to handle payment creation using Cashfree
 app.get('/api/create-payment', async (req, res) => {
-  const { amount,email } = req.query; // Amount in paise (₹1 = 100 paise)
+  const { amount, email } = req.query; // Amount in paise (₹1 = 100 paise)
   // Prepare Cashfree order data
   var request = {
     "order_amount": amount,
@@ -474,10 +485,10 @@ app.get('/api/create-payment', async (req, res) => {
       "customer_phone": "9999999999"
     },
   };
-  Cashfree.PGCreateOrder("2023-08-01",request).then(response=>{
+  Cashfree.PGCreateOrder("2023-08-01", request).then(response => {
     console.error(response.data);
     res.json(response.data);
-  }).catch(error=>{
+  }).catch(error => {
     console.error(error.response.data.message);
   })
 
@@ -486,12 +497,12 @@ app.get('/api/create-payment', async (req, res) => {
 
 app.post('/api/Verify_Payment', async (req, res) => {
   try {
-   let {orderId}=req.body;
-   console.error(" orderid = ",orderId)
-   console.log(" orderid send to server = ",orderId)
-   Cashfree.PGOrderFetchPayments("2023-08-01",orderId).then((response)=>{
-    res.json(response.data);
-   })
+    let { orderId } = req.body;
+    console.error(" orderid = ", orderId)
+    console.log(" orderid send to server = ", orderId)
+    Cashfree.PGOrderFetchPayments("2023-08-01", orderId).then((response) => {
+      res.json(response.data);
+    })
   } catch (error) {
     console.error("Unexpected error in verify payment:", error);
     res.status(500).json({ error: "Internal Server Error" });
