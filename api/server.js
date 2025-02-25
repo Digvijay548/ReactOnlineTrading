@@ -5,6 +5,7 @@ const cors = require('cors');
 const crypto=require('crypto');
 const {Cashfree}=require('cashfree-pg');
 const { Client, Account,Query,Databases,ID } = require('node-appwrite');
+const { error } = require('console');
 
 
 
@@ -136,7 +137,7 @@ app.post('/api/Add-Account', async (req, res) => {
         ifsccode: Ifsccode.toString() // Convert back to string if needed
       });  //update accountholdername
 
-      console.log(`✅ Updated Account Details  ${email} : ${Accountholdername}: ${Accountnumber}`);
+      console.log(`✅ Updated Account Details  ${email} : ${Accountholdername}: ${Accountnumber} : ${Ifsccode}`);
     }
       
   } catch (error) {
@@ -304,11 +305,78 @@ app.get('/api/get-AccountDetails', async (req, res) => {
 });
 
 
+// required email and amount
+app.get('/api/get-Withdrawal',async (req, res) => {
+  const { email,amount } = req.query;
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+  try {
+    console.log("🔍 Fetching Account Details for email:", email);
+
+    // ✅ Query Appwrite to check if email exists
+    const userRecords = await database.listDocuments(DB_ID, COLLECTION_ID, [
+      Query.equal("email", [email])
+    ]);
+
+    console.log(userRecords);
+
+    if (userRecords.documents.length > 0) {
+      // ✅ Email found, return AccountDetails
+      const user = userRecords.documents[0];
+      const userId = user.$id;
+      // ✅ Convert balance from string to number (Default to 0 if missing)
+      const Accountnumber = user.accountnumber || "Not Available";
+      const Accountholdername = user.accountholdername || "Not Available";
+      const Ifsccode=user.ifsccode|| "Not Available";
+      const Balance = user.Balance ? parseFloat(user.Balance) : 0;
+      const LastTradeTime = user.last_trade_time || "Not Available";
+      const Withdrawal_Amount=user.Withdrawal_Amount? parseFloat(user.Withdrawal_Amount) : 0;
+      const Withdrawal_Count=user.Withdrawal_Count? parseFloat(user.Withdrawal_Amount) : 0;
+      if(Accountnumber=="Not Available" || Accountholdername!="Not Available" || Ifsccode!="Not Available")
+      {
+        return res.status(404).json({error:"Account Not Added"})
+      }
+      if(Balance<1000)
+      {
+        return res.status(404).json({error:"Minimum balance 1000 required",balance:Balance})
+      }
+      if(Withdrawal_Amount!=0 || Withdrawal_Count!=0)
+      {
+        return res.status(404).json({error:"Your previous request is in process please wait some time",withdrawal_balance:Withdrawal_Amount})
+      }
+
+      const FinalBal=Balance-parseFloat(amount);
+
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        Balance: FinalBal.toString() // Convert back to string if needed
+      });  //update balance
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        Withdrawal_Amount: amount.toString() // Convert back to string if needed        
+      }); //update no of time balance
+      await database.updateDocument(DB_ID, COLLECTION_ID, userId, {
+        Withdrawal_Count: "1" // Convert back to string if needed        
+      }); //update no of time balance
+
+
+      console.log(`✅ Updated for ${email}: Account No :${Accountnumber}, User Name : ${Accountholdername}, IFSC Code : ${Ifsccode},Withdrawal Amount : ${amount},Final Amount after withdrawal : ${FinalBal}`);
+      return res.json({ accountnumber:Accountnumber,accountholdername:Accountholdername, ifsccode: Ifsccode ,finalbalance:FinalBal,withdrawal_amount:amount});
+    } else {
+      // ❌ Email not found
+      console.error(`❌ User not found: ${email}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("❌ Error fetching Account Details:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 // Health check route to verify server is running
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is up and running! 21-02-2025 15-42' });
 });
-
 
 // Register route to create a new user with Appwrite
 app.post('/api/register', async (req, res) => {
