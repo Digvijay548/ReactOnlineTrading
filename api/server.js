@@ -306,8 +306,9 @@ app.get('/api/get-AccountDetails', async (req, res) => {
 
 
 // required email and amount
-app.get('/api/get-Withdrawal',async (req, res) => {
+app.get('/api/getWithdrawal',async (req, res) => {
   console.log("🔍 Fetching Account Details in get-Withdrawal for email:", email);
+  console.log("🔍 Fetching Account Details in get-Withdrawal for amount:", amount);
   const { email,amount } = req.query;
   if (!email) {
     return res.status(400).json({ error: "Email is required" });
