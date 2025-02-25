@@ -49,6 +49,10 @@
     {
       "src": "/api/Add-Account",
       "dest": "/api/server.js"
-    }    
+    } ,
+    {
+      "src": "get-Withdrawal",
+      "dest": "/api/server.js"
+    }   
   ]
 }
