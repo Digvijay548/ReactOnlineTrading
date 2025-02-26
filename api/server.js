@@ -302,6 +302,52 @@ app.get('/api/get-AccountDetails', async (req, res) => {
   }
 });
 
+app.post("/api/forgot-password", async (req, res) => {
+  const { email} = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    console.log(`🔍 Sending password reset link to: ${email}`);
+
+    // ✅ Create Password Recovery Link
+    await account.createRecovery(email, `https://tradingapp4.netlify.app/ResetPassword`);
+
+    console.log(`✅ Password reset link sent to ${email}`);
+    res.json({ message: "Password reset link has been sent to your email." });
+  } catch (error) {
+    console.error("❌ Error sending reset email:", error);
+    res.status(500).json({ error: "Failed to send password reset email." });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  const { userId, secret, password, confirmPassword } = req.body;
+
+  if (!userId || !secret || !password || !confirmPassword) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords do not match." });
+  }
+
+  try {
+    console.log(`🔄 Resetting password for user ID: ${userId}`);
+
+    // ✅ Update Password using Recovery API
+    await account.updateRecovery(userId, secret, password, confirmPassword);
+
+    console.log(`✅ Password updated successfully for user ID: ${userId}`);
+    res.json({ message: "Password reset successful. You can now log in." });
+  } catch (error) {
+    console.error("❌ Error resetting password:", error);
+    res.status(500).json({ error: "Failed to reset password." });
+  }
+});
+
 
 // required email and amount
 app.post('/api/getWithdrawal', async (req, res) => {
