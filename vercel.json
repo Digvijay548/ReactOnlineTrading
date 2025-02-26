@@ -53,6 +53,14 @@
     {
       "src": "/api/getWithdrawal",
       "dest": "/api/server.js"
-    }   
+    }   ,
+    {
+      "src": "/api/forgot-password",
+      "dest": "/api/server.js"
+    } ,
+    {
+      "src": "/api/reset-password",
+      "dest": "/api/server.js"
+    } 
   ]
 }
