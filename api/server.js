@@ -327,11 +327,11 @@ app.post("/api/reset-password", async (req, res) => {
   const { userId, secret, password, confirmPassword } = req.body;
 
   if (!userId || !secret || !password || !confirmPassword) {
-    return res.status(200).json({ error: "All fields are required." });
+    return res.status(400).json({ error: "All fields are required." });
   }
 
   if (password !== confirmPassword) {
-    return res.status(200).json({ error: "Passwords do not match." });
+    return res.status(400).json({ error: "Passwords do not match." });
   }
 
   try {
@@ -342,9 +342,9 @@ app.post("/api/reset-password", async (req, res) => {
 
     console.log(`✅ Password updated successfully for user ID: ${userId}`);
     res.json({ message: "Password reset successful. You can now log in." });
-  } catch (Error) {
+  } catch (error) {
     console.error("❌ Error resetting password:", error);
-    res.json({ error:Error});
+    res.status(500).json({ error: "Failed to reset password. Please try again." });
   }
 });
 
